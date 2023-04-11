@@ -28,7 +28,7 @@ function test_cue() {
   local _envrionmment=$1
   local _override_path=$2
   local _value_file=./${_envrionmment}/override.cue
-  if ! cue vet "${_value_file} ${_override_path}" --strict --simplify; then
+  if ! cue vet "${_value_file}" "${_override_path}" --strict --simplify; then
     echo "[ERROR] Override file does not validate cue file"
     exit 1
   fi

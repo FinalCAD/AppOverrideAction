@@ -5,6 +5,10 @@ Override file is in yaml, by default file is '.finalcad/overrides.yaml'.
 This file must validate against `cue` schema.
 This action only update `eks-apps` repo, argocd will deploy this app with any override.
 
+## Allowed values for override
+
+You can check every allowed values on this [page](https://finalcad.atlassian.net/wiki/spaces/INFRA/pages/3752656915/Override+parameters)
+
 ## Inputs
 ### `app-name`
 [**Required**] Application ID to identify the apps in eks-apps
