@@ -40,16 +40,20 @@ function test_chart() {
   local _application=$3
   local _override_path=$4
   local _kubeversions=$5
-  local _value_file=./${_envrionmment}/${_region}/${_application}.override.yaml
   local _repopath=./${_envrionmment}/chart
   local _array_regions=${_regions//,/$'\n'}
   local _array_kubeversions=${_kubeversions//,/$'\n'}
   for region in ${_array_regions}; do
     for kubeversion in ${_array_kubeversions}; do
       echo "[INFO] Kubeconform & helm for ${region} on ${kubeversion}"
-      result=$(helm template "${_repopath}" -f "${_repopath}/values.yaml" -f "${_repopath}/../${region}/values.yaml" \
-        -f "${_repopath}/../${region}/${_application}.${_envrionmment}.${region}.values.yaml" \
-        -f "${_override_path}")
+      helm_args="-f ${_repopath}/values.yaml -f ${_repopath}/../${region}/values.yaml"
+      if [  -f "${_repopath}/../${region}/${_application}.${_envrionmment}.${region}.values.yaml" ]; then
+        helm_args+=" -f ${_repopath}/../${region}/${_application}.${_envrionmment}.${region}.values.yaml"
+      fi
+      if [  -f "${_repopath}/../${region}/${_application}.yaml" ]; then
+        helm_args+=" -f ${_repopath}/../${region}/${_application}.yaml"
+      fi
+      result=$(helm template ${_repopath} ${helm_args} -f ${_override_path})
       if [ "$?" -ne 0 ]; then
         echo "[ERROR] Helm chart is not valid after override"
         exit 1
