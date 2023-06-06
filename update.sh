@@ -5,11 +5,13 @@ function override_continue() {
   local _regions=$2
   local _application=$3
   local _override_path=$4
+  local _default=$5
   local _array_regions=${_regions//,/$'\n'}
   continue=0
   for r in ${_array_regions}; do
     if [ -f "./${_envrionmment}/${r}/${_application}.override.yaml" ]; then
-      diff <(yq -P 'sort_keys(..)' "${_override_path}") <(yq -P 'sort_keys(..)' "./${_envrionmment}/${r}/${_application}.override.yaml") > /dev/null
+      override_value=$(yq ". *n load(\"${_default}\")" "${_override_path}")
+      diff <(yq -P 'sort_keys(..)' <(echo "${override_value}")) <(yq -P 'sort_keys(..)' "./${_envrionmment}/${r}/${_application}.override.yaml") > /dev/null
       exit_code="$?"
       if [ ! "${exit_code}" -eq 0 ]; then
         echo "[INFO] Drift detected"
@@ -74,8 +76,9 @@ function update_value() {
   local _region=$2
   local _application=$3
   local _override_path=$4
+  local _default=$5
   local _value_file=./${_envrionmment}/${_region}/${_application}.override.yaml
-  yq "${_override_path}" > "${_value_file}"
+  yq ". *n load(\"${_default}\")" "${_override_path}"> "${_value_file}"
   echo "[INFO] File ${_value_file} updated"
   if [ ! "${debug}" = true ]; then
     git add --all
@@ -119,6 +122,7 @@ function git_push() {
 }
 
 debug=${DEBUG:-false}
+default=${DEFAULT_FILE:-default.yaml}
 
 if [ "${debug}" = true ]; then
   echo "[DEBUG] Debug Mode: ON"
@@ -128,7 +132,7 @@ else
   setup_git
 fi
 
-override_continue "${ENVIRONMENT}" "${REGIONS}" "${APPNAME}" "${OVERRIDE_PATH}"
+override_continue "${ENVIRONMENT}" "${REGIONS}" "${APPNAME}" "${OVERRIDE_PATH}" "${default}"
 
 if [ "${continue}" -eq 0 ]; then
   echo "[INFO] Nothing to change"
@@ -142,7 +146,7 @@ test_chart "${ENVIRONMENT}" "${REGIONS}" "${APPNAME}" "${OVERRIDE_PATH}" "${KUBE
 regions=${REGIONS//,/$'\n'}
 # For every defined regions, update values file with image sha
 for region in ${regions}; do
-  update_value "${ENVIRONMENT}" "${region}" "${APPNAME}" "${OVERRIDE_PATH}"
+  update_value "${ENVIRONMENT}" "${region}" "${APPNAME}" "${OVERRIDE_PATH}" "${default}"
 done
 
 # Push changes

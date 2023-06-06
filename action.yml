@@ -100,5 +100,6 @@ runs:
         ACTOR_NAME: ${{ steps.actor.outputs.actor-name }}
         OVERRIDE_PATH: ../app/${{ inputs.override-file }}
         KUBEVERSIONS: ${{ inputs.kubernetes-version }}
+        DEFAULT_FILE: ${{ github.action_path }}/default.yaml
       run: |
         bash ${GITHUB_ACTION_PATH}/update.sh
