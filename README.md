@@ -22,7 +22,7 @@ Repository for eks-apps, Default: `FinalCAD/eks-apps(-sandbox)`
 ### `helm-red`
 Reference to use for `helm-repo`, Default: master
 
-### `gitub-token`
+### `github-token`
 Github token to avoid limit rate when pulling package
 
 ### `github-ssh`
