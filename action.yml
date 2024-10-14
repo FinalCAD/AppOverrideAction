@@ -3,103 +3,43 @@ description: 'Create an override values for helm deployment'
 inputs:
   app-name:
     description: 'Applcation id'
-    required: true
+    default: ''
   debug:
     description: 'Debug mode'
     default: false
   helm-repo:
     description: 'helm repository'
-    default: 'FinalCAD/eks-apps'
+    default: ''
   helm-ref:
-    descrition: 'Ref to use for pulling helm repo'
-    default: 'master'
+    description: 'Ref to use for pulling helm repo'
+    default: ''
   github-ssh:
     description: 'Github ssh key to pull helm chart repo from github'
-    required: true
+    default: ''
   github-token:
     description: 'Github token to pull package to avoid limit rate'
     default: ''
   environment:
     description: 'Finalcad envrionment: production, staging, sandbox'
-    require: true
+    default: ''
   regions:
     description: 'Finalcad List region'
-    default: 'eu,ap'
+    default: ''
   override-file:
     description: 'File with path for override files configuration'
-    default: '.finalcad/overrides.yaml'
+    default: ''
   kubernetes-version:
     description: 'Kubernetes version to test against'
-    default: '1.25.0'
+    default: ''
 runs:
   using: 'composite'
   steps:
-    - uses: actions/checkout@v3
-      with:
-        path: 'app'
-    - name: Select helm repo
-      shell: bash
-      id: helmrepo
-      run: |
-        repo=${{ inputs.helm-repo }}
-        if [ "${{ inputs.environment }}" == "sandbox" ]; then
-          repo="${repo}-sandbox"
-        fi
-        echo "repo=${repo}" >> $GITHUB_OUTPUT
-    - uses: actions/checkout@v3
-      with:
-        ssh-key: ${{ inputs.github-ssh }}
-        repository: ${{ steps.helmrepo.outputs.repo }}
-        ref: ${{ inputs.helm-ref }}
-        path: 'helm'
-    # Setup ssh key
-    - name: Add ssh key
+    - name: "[deprecated] AppOverrideAction"
       shell: bash
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ inputs.github-ssh }}" > ~/.ssh/id_rsa
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
-        chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
-        eval $(ssh-agent)
-        ssh-add ~/.ssh/id_rsa
-    # Setup go
-    - name: Setup go
-      uses: actions/setup-go@v4
-      with:
-        token: ${{ inputs.github-token }}
-        go-version: 1.18
-    # Setup helm
-    - uses: azure/setup-helm@v3
-      with:
-        token: ${{ inputs.github-token }}
-    # Setup kubeconform & yq
-    - name: Setup kubeconform & yq & cue
-      shell: bash
-      run: |
-        go install github.com/yannh/kubeconform/cmd/kubeconform@v0.6.1
-        go install cuelang.org/go/cmd/cue@v0.4.3
-        mkdir -p ${RUNNER_TEMP}/yq
-        wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O "${RUNNER_TEMP}/yq/yq"
-        chmod +x "${RUNNER_TEMP}/yq/yq"
-        echo "${RUNNER_TEMP}/yq" >> $GITHUB_PATH
-    - name: Get username & email of actor
-      id: actor
-      shell: bash
-      run: |
-        echo "actor-email=$(git log -1 --pretty=format:'%ae')" >> $GITHUB_OUTPUT
-        echo "actor-name=$(git log -1 --pretty=format:'%an')" >> $GITHUB_OUTPUT
-    - name: Override deployment manifest
-      shell: bash
-      working-directory: ./helm
-      env:
-        REGIONS: ${{ inputs.regions }}
-        ENVIRONMENT: ${{ inputs.environment }}
-        APPNAME: ${{ inputs.app-name }}
-        DEBUG: ${{ inputs.debug }}
-        ACTOR_EMAIL: ${{ steps.actor.outputs.actor-email }}
-        ACTOR_NAME: ${{ steps.actor.outputs.actor-name }}
-        OVERRIDE_PATH: ../app/${{ inputs.override-file }}
-        KUBEVERSIONS: ${{ inputs.kubernetes-version }}
-        DEFAULT_FILE: ${{ github.action_path }}/default.yaml
-      run: |
-        bash ${GITHUB_ACTION_PATH}/update.sh
+          cat <<EOF
+          The Github Action https://github.com/FinalCAD/AppOverrideAction is deprecated. Use Gob (https://finalcad.atlassian.net/wiki/spaces/TE/pages/4264427522/Repository+update+by+Gob) to update your project.
+
+          If you don't know what it means, post a message on Slack #infra-backend (https://finalcad.slack.com/archives/G01GL3EBLAW).
+          EOF
+          exit 1
